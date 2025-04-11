@@ -5,7 +5,7 @@ let responses = {};
 let currentIndex = 0;
 let userID = "";
 
-// <-- Replace with your CSV‑upload Web App URL -->
+// Your Apps Script CSV‑uploader URL
 const uploadUrl = "https://script.google.com/macros/s/AKfycbw4sKSxzoLLzJPg8sgcxpbOXScq0QK_qVioD0QwUqhE4ox6nphHyakwl1IgC-axaFaf4w/exec";
 
 window.onload = async () => {
@@ -83,18 +83,21 @@ function updateSubmitStatus() {
   document.getElementById("submitBtn").disabled = completed < images.length;
 }
 
-// Called when user clicks "Submit All"
 async function submitAll() {
   saveCurrentResponse();
 
   // Build CSV and filename
   const { csvContent, filename } = buildCSV();
 
+  // Prepare form data (no custom headers → no preflight)
+  const form = new URLSearchParams();
+  form.append("csv",      csvContent);
+  form.append("filename", filename);
+
   try {
     const res = await fetch(uploadUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ csv: csvContent, filename })
+      body:   form
     });
     const j = await res.json();
     if (j.success) {
@@ -102,16 +105,15 @@ async function submitAll() {
       localStorage.removeItem("responses_" + userID);
       location.reload();
     } else {
-      console.error("Upload error:", j.error);
-      alert("❌ Upload failed: " + j.error);
+      throw new Error(j.error);
     }
   } catch (err) {
-    console.error("Fetch error:", err);
+    console.error("Upload failed:", err);
     alert("❌ Submission failed. Try again later.");
   }
 }
 
-// Builds the CSV text and filename
+// Construct the CSV text and filename
 function buildCSV() {
   const headers = ["UserID","ImageID","Q1","Q2","Q3","Q4"];
   const rows = Object.entries(responses).map(([filename, resp]) => [
@@ -123,7 +125,6 @@ function buildCSV() {
     resp.q4 || ""
   ]);
 
-  // Escape and join
   const csvLines = [
     headers.join(","),
     ...rows.map(r =>
@@ -132,6 +133,6 @@ function buildCSV() {
   ];
 
   const csvContent = csvLines.join("\r\n");
-  const filename = `responses_${userID}.csv`;
+  const filename   = `responses_${userID}.csv`;
   return { csvContent, filename };
 }
