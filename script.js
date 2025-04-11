@@ -3,7 +3,8 @@ let images = [];
 let responses = {};
 let currentIndex = 0;
 let userID = "";
-const backendURL = "https://script.google.com/macros/s/AKfycbwB7--valHXfTffjqStXXUYICqG1u-jF6iVo_yIvjdIJrLa63zC5pbK5-fQ0TtZBKhH/exec";
+const backendURL = "https://script.google.com/macros/s/AKfycbyTN-5ULn_EUU9phzfH0hp-C-QyIvaNET0CozQ3Hn1AqOsOSX_fc16zjvCWboYc-31n/exec";
+  
 
 window.onload = async () => {
   const res = await fetch("images.json");
