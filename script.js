@@ -108,7 +108,7 @@ async function submitAll() {
     for (const row of rows) {
       // The JSON payload is wrapped in an object with the resource key.
       // This key should match what Sheety generated—in this case, it's "sheet1".
-      const payload = { Sheet1: row };
+      const payload = { sheet1: row };
 
       const res = await fetch(backendURL, {
         method: "POST",
