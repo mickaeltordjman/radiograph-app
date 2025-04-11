@@ -3,7 +3,7 @@ let images = [];
 let responses = {};
 let currentIndex = 0;
 let userID = "";
-const backendURL = "https://script.google.com/macros/s/AKfycbya7E7Z78yQeR0h8tRiVYAiVqNmDJA1nJXfyEuJuAaBIpV-w5f7_wYs_AEx7OI6M01i/exec";
+const backendURL = "https://api.sheety.co/b8b3a9443e61e89c91f5e8a1c1c3bdf3/untitledSpreadsheet/sheet1";
   
 
 window.onload = async () => {
@@ -83,29 +83,50 @@ function updateSubmitStatus() {
 }
 
 async function submitAll() {
+  // Save the current response if not already saved
   saveCurrentResponse();
 
-  const finalPayload = {
-    userID,
-    responses: Object.keys(responses).map(filename => {
-      return {
-        imageID: filename,
-        ...responses[filename]
-      };
-    })
-  };
-
-  const res = await fetch(backendURL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(finalPayload)
+  // Build an array of rows to submit.
+  // Each row is built to match your Google Sheet's columns.
+  const rows = Object.keys(responses).map(filename => {
+    const response = responses[filename];
+    return {
+      UserID: userID,                            // Column: UserID
+      ImageID: filename,                         // Column: ImageID
+      Q1_TechQuality: response.q1 || "",         // Column: Q1_TechQuality
+      Q2_Artifacts: response.q2 || "",           // Column: Q2_Artifacts
+      // For Q3_Abnormality, join the selected options if it's an array
+      Q3_Abnormality: response.q3 ? 
+                        (Array.isArray(response.q3) ? response.q3.join(", ") : response.q3) 
+                        : "",
+      Q4_Comment: response.q4 || ""              // Column: Q4_Comment
+    };
   });
 
-  if (res.ok) {
+  try {
+    // Loop over each row and submit it as a POST request to Sheety.
+    for (const row of rows) {
+      // The JSON payload is wrapped in an object with the resource key.
+      // This key should match what Sheety generated—in this case, it's "sheet1".
+      const payload = { sheet1: row };
+
+      const res = await fetch(backendURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        throw new Error("Request failed with status " + res.status);
+      }
+    }
+
     alert("✅ Responses submitted successfully!");
+    // Clear local storage for this user to prevent resubmission
     localStorage.removeItem("responses_" + userID);
     location.reload();
-  } else {
+  } catch (error) {
+    console.error("Submission error:", error);
     alert("❌ Submission failed. Try again later.");
   }
-} 
+}
