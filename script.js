@@ -82,52 +82,52 @@ function updateSubmitStatus() {
   document.getElementById("submitBtn").disabled = completed < images.length;
 }
 
+
 async function submitAll() {
-  // Save the current response if not already saved
+  // Save the current responses, if needed
   saveCurrentResponse();
 
-  // Build an array of rows to submit.
-  // Each row is built to match your Google Sheet's columns.
+  // Create an array of rows from your stored responses.
   const rows = Object.keys(responses).map(filename => {
     const response = responses[filename];
     return {
-      UserID: userID,                            // Column: UserID
-      ImageID: filename,                         // Column: ImageID
-      Q1_TechQuality: response.q1 || "",         // Column: Q1_TechQuality
-      Q2_Artifacts: response.q2 || "",           // Column: Q2_Artifacts
-      // For Q3_Abnormality, join the selected options if it's an array
-      Q3_Abnormality: response.q3 ? 
-                        (Array.isArray(response.q3) ? response.q3.join(", ") : response.q3) 
+      UserID: userID,                              // Must match your sheet column exactly.
+      ImageID: filename,                           // Make sure these values are set.
+      Q1_TechQuality: response.q1 || "",
+      Q2_Artifacts: response.q2 || "",
+      Q3_Abnormality: response.q3 
+                        ? (Array.isArray(response.q3) ? response.q3.join(", ") : response.q3)
                         : "",
-      Q4_Comment: response.q4 || ""              // Column: Q4_Comment
+      Q4_Comment: response.q4 || ""
     };
   });
 
-
-try {
+  try {
+    // Process each row separately
     for (const row of rows) {
-      const payload = { sheet1: row };
+      // Build the body according to the sample provided by Sheety
+      let body = {
+        sheet1: row
+      };
 
-      console.log("Submitting payload:", JSON.stringify(payload, null, 2));
-      console.log("Row data:", row);
+      console.log("Submitting payload:", JSON.stringify(body, null, 2));
 
+      // Send the POST request
       const res = await fetch(backendURL, {
         method: "POST",
+        // Even though the example you saw might not include headers,
+        // it is recommended to include the Content-Type header.
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(body)
       });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Request failed with status:", res.status, errorText);
-        throw new Error("Request failed with status " + res.status);
-      }
-      
-      const jsonResponse = await res.json();
-      console.log("Successful row added:", jsonResponse);
+      // Convert the response to JSON and log it.
+      const json = await res.json();
+      console.log("Row added:", json.sheet1);
     }
 
     alert("✅ Responses submitted successfully!");
+    // Clear responses for the user
     localStorage.removeItem("responses_" + userID);
     location.reload();
   } catch (error) {
