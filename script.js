@@ -103,12 +103,13 @@ async function submitAll() {
     };
   });
 
-  try {
-    // Loop over each row and submit it as a POST request to Sheety.
+
+try {
     for (const row of rows) {
-      // The JSON payload is wrapped in an object with the resource key.
-      // This key should match what Sheety generated—in this case, it's "sheet1".
       const payload = { sheet1: row };
+
+      console.log("Submitting payload:", JSON.stringify(payload, null, 2));
+      console.log("Row data:", row);
 
       const res = await fetch(backendURL, {
         method: "POST",
@@ -117,12 +118,16 @@ async function submitAll() {
       });
 
       if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Request failed with status:", res.status, errorText);
         throw new Error("Request failed with status " + res.status);
       }
+      
+      const jsonResponse = await res.json();
+      console.log("Successful row added:", jsonResponse);
     }
 
     alert("✅ Responses submitted successfully!");
-    // Clear local storage for this user to prevent resubmission
     localStorage.removeItem("responses_" + userID);
     location.reload();
   } catch (error) {
