@@ -3,7 +3,7 @@ let images = [];
 let responses = {};
 let currentIndex = 0;
 let userID = "";
-const backendURL = "https://script.google.com/macros/s/AKfycbyTN-5ULn_EUU9phzfH0hp-C-QyIvaNET0CozQ3Hn1AqOsOSX_fc16zjvCWboYc-31n/exec";
+const backendURL = "https://script.google.com/macros/s/AKfycby5hpEkERGvDvRgbBoJEv0vuWI7_IALQZ3MmNc3oXToH60URcoQ0gbYTdpDYtgCwbn8/exec";
   
 
 window.onload = async () => {
